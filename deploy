@@ -1,0 +1,30 @@
+#!/bin/bash
+
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+COMMIT_HASH_SHORT=`git rev-parse --short HEAD`
+PROJECT="outside-playground-300111"
+REPOSITORY="cloudrun-deployment"
+SERVICE_NAME="api"
+SERVICE_ACCOUNT="akp-cloud-run-deployment@outside-playground-300111.iam.gserviceaccount.com"
+SERVICE_ACCOUNT_KEY="cicd/credentials/outside-playground-300111-e677a30796bd.json"
+IMAGE="us-docker.pkg.dev/${PROJECT}/${REPOSITORY}/${SERVICE_NAME}:${COMMIT_HASH_SHORT}"
+
+funcAuthenticateDocker() {
+    gcloud auth activate-service-account $1 --key-file=$2
+    gcloud auth configure-docker us-docker.pkg.dev
+}
+
+funcDockerBuildImage() {
+    docker build -t $1 -f DockerFile .
+    docker push $1
+}
+
+funcTerraformApply() {
+    terraform -chdir="cicd/terraform" init
+    terraform -chdir="cicd/terraform" apply -var "app_image=${1}" -auto-approve
+}
+
+funcAuthenticateDocker $SERVICE_ACCOUNT $SERVICE_ACCOUNT_KEY
+funcDockerBuildImage $IMAGE
+
+funcTerraformApply $IMAGE
