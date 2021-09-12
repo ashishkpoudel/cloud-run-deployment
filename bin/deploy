@@ -1,4 +1,4 @@
-const { spawn, execSync } = require('child_process');
+const { spawnSync, execSync } = require('child_process');
 const { dirname } = require('path');
 const { existsSync, readFileSync } = require('fs');
 
@@ -15,10 +15,10 @@ if (!existsSync(configFile)) {
  */
 
 const execute = (command, args) => {
-  const cmd = spawn(command, args);
-  cmd.stdout.on('data', (data) => process.stdout.write(data));
-  cmd.stderr.on('data', (data) => process.stderr.write(data));
-  cmd.on('error', () => process.exit(1));
+  const cmd = spawnSync(command, args);
+  process.stdout.write(cmd.stdout);
+  process.stderr.write(cmd.stderr);
+  if (cmd.error) process.exit(1);
 }
 
 const authenticateDocker = (serviceAccount, serviceAccountKey) => {
@@ -41,7 +41,7 @@ const terraformApply = (dir, image) => {
  */
 
 const config = JSON.parse(readFileSync(configFile))[environment];
-const commitHash = execSync('git rev-parse --short HEAD').toString();
+const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
 const image = `us-docker.pkg.dev/outside-playground-300111/cloudrun-deployment/api:${commitHash}`;
 const serviceAccountKeyFile = `${projectDir}/infra/gcp/credentials/${config['serviceAccountKey']}`;
 const terraformDir = `${projectDir}/infra/gcp/terraform`;
