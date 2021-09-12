@@ -6,8 +6,6 @@ $environment = $argv[1];
 $projectDir = dirname(__DIR__);
 $configFile = "${projectDir}/infra/gcp/config.json";
 
-echo "hello there";
-
 if (!file_exists($configFile)) {
     throw new Exception("config file does not exist in path: ${configPath}");
 }
@@ -17,29 +15,39 @@ if (!file_exists($configFile)) {
  */
 
 $config = json_decode(file_get_contents($configFile), true)[$environment];
-$commitHashShort = shell_exec("git rev-parse --short HEAD");
 
 /**
  * Utilities
  */
 
+function formatString($str) {
+    return trim(preg_replace('/\s+/', ' ', $str));
+}
+
 function authenticateDocker($serviceAccount, $serviceAccountKey) {
-    shell_exec(sprintf("gcloud auth activate-service-account %s --key-file=%s", $serviceAccount, $serviceAccountKey));
-    shell_exec("gcloud auth configure-docker us-docker.pkg.dev");
+    shell_exec(formatString("gcloud auth activate-service-account ${serviceAccount} --key-file=${serviceAccountKey} --quiet"));
+    shell_exec(formatString("gcloud auth configure-docker us-docker.pkg.dev --quiet"));
 }
 
 function buildDockerImage($image) {
-    shell_exec(sprintf("docker build -t %s -f DockerFile .", $image));
-    shell_exec(sprintf("docker push %s", $image));
+    shell_exec(formatString("docker build -t ${image} -f DockerFile ."));
+    shell_exec(formatString("docker push ${image}"));
 }
 
 function terraformApply($dir, $image) {
-    shell_exec(sprintf("terraform -chdir=%s init", $dir));
-    shell_exec(sprintf("terraform -chdir=%s apply -var %s -auto-approve", $dir, "app_image=${image}"));
+    shell_exec(formatString("terraform -chdir=${dir} init"));
+    shell_exec(formatString("terraform -chdir=${dir} apply -var app_image=${image} -auto-approve"));
 }
 
 /**
  * Execution
  */
 
-authenticateDocker($config['serviceAccount'], $config['serviceAccountKey']);
+$commitHash = shell_exec("git rev-parse --short HEAD");
+$serviceAccountKeyFile = "${projectDir}/infra/gcp/credentials/${config['serviceAccountKey']}";
+$terraformDir = "${projectDir}/infra/gcp/terraform";
+$image = "us-docker.pkg.dev/outside-playground-300111/cloudrun-deployment/api:${commitHash}";
+
+authenticateDocker($config['serviceAccount'], $serviceAccountKeyFile);
+buildDockerImage($image);
+terraformApply($terraformDir, $image);

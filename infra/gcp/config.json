@@ -3,6 +3,6 @@
         "project": "outside-playground-300111",
         "artifactRepository": "cloudrun-deployment",
         "serviceAccount": "akp-cloud-run-deployment@outside-playground-300111.iam.gserviceaccount.com",
-        "serviceAccountKey": "credentials/outside-playground-300111-e677a30796bd.json"
+        "serviceAccountKey": "outside-playground-300111-e677a30796bd.json"
     }
 }
