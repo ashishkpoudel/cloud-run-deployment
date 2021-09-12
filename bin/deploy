@@ -1,53 +1,53 @@
-#!/usr/bin/php
+#!/usr/bin/node
 
-<?php
+const { spawn, execSync } = require('child_process');
+const { dirname } = require('path');
+const { existsSync, readFileSync } = require('fs');
 
-$environment = $argv[1];
-$projectDir = dirname(__DIR__);
-$configFile = "${projectDir}/infra/gcp/config.json";
+const environment = process.argv[2];
+const projectDir = dirname(__dirname);
+const configFile = `${projectDir}/infra/gcp/config.json`;
 
-if (!file_exists($configFile)) {
-    throw new Exception("config file does not exist in path: ${configPath}");
+if (!existsSync(configFile)) {
+  throw new Error(`config file does not exist in path: ${configPath}`);
 }
-
-/**
- * Configuration
- */
-
-$config = json_decode(file_get_contents($configFile), true)[$environment];
 
 /**
  * Utilities
  */
 
-function formatString($str) {
-    return trim(preg_replace('/\s+/', ' ', $str));
+const execute = (command, args) => {
+  const cmd = spawn(command, args);
+  cmd.stdout.on('data', (data) => process.stdout.write(data));
+  cmd.stderr.on('data', (data) => process.stderr.write(data));
+  cmd.on('error', () => process.exit(1));
 }
 
-function authenticateDocker($serviceAccount, $serviceAccountKey) {
-    shell_exec(formatString("gcloud auth activate-service-account ${serviceAccount} --key-file=${serviceAccountKey} --quiet"));
-    shell_exec(formatString("gcloud auth configure-docker us-docker.pkg.dev --quiet"));
+const authenticateDocker = (serviceAccount, serviceAccountKey) => {
+  execute('gcloud', ['auth', 'activate-service-account', `${serviceAccount}`, `--key-file=${serviceAccountKey}`, '--quiet']);
+  execute('gcloud', ['auth', 'configure-docker', 'us-docker.pkg.dev', '--quiet']);
 }
 
-function buildDockerImage($image) {
-    shell_exec(formatString("docker build -t ${image} -f DockerFile ."));
-    shell_exec(formatString("docker push ${image}"));
+const buildDockerImage = (image) => {
+  execute('docker', ['build', '-t', image, '-f', 'DockerFile', '.']);
+  execute('docker', ['push', image]);
 }
 
-function terraformApply($dir, $image) {
-    shell_exec(formatString("terraform -chdir=${dir} init"));
-    shell_exec(formatString("terraform -chdir=${dir} apply -var app_image=${image} -auto-approve"));
+const terraformApply = (dir, image) => {
+  execute('terraform', [`-chdir=${dir}`, 'init']);
+  execute('terraform', [`-chdir=${dir}`, 'apply', '-var', `app_image=${image}`, '-auto-approve']);
 }
 
 /**
  * Execution
  */
 
-$commitHash = shell_exec("git rev-parse --short HEAD");
-$serviceAccountKeyFile = "${projectDir}/infra/gcp/credentials/${config['serviceAccountKey']}";
-$terraformDir = "${projectDir}/infra/gcp/terraform";
-$image = "us-docker.pkg.dev/outside-playground-300111/cloudrun-deployment/api:${commitHash}";
+const config = JSON.parse(readFileSync(configFile))[environment];
+const commitHash = execSync('git rev-parse --short HEAD').toString();
+const image = `us-docker.pkg.dev/outside-playground-300111/cloudrun-deployment/api:${commitHash}`;
+const serviceAccountKeyFile = `${projectDir}/infra/gcp/credentials/${config['serviceAccountKey']}`;
+const terraformDir = `${projectDir}/infra/gcp/terraform`;
 
-authenticateDocker($config['serviceAccount'], $serviceAccountKeyFile);
-buildDockerImage($image);
-terraformApply($terraformDir, $image);
+authenticateDocker(config['serviceAccount'], serviceAccountKeyFile);
+buildDockerImage(image);
+terraformApply(terraformDir, image);
