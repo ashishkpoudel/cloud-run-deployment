@@ -1,0 +1,4 @@
+curl -X POST  https://github.com/ashishkpoudel/cloud-run-deployment/dispatches \
+    -H 'Accept: application/vnd.github.everest-preview+json' \
+    -H "Authorization: token $GITHUB_DEPLOY_TOKEN" \
+    --data '{"event_type": "deploy-service", "client_payload": {"environment": "'"$1"'", "ref": "'"$2"'"}}'
