@@ -22,5 +22,5 @@ jobs:
           unzip terraform_1.0.6_linux_amd64.zip
           sudo mv terraform /usr/local/bin/
 
-      - name: Run Deply
+      - name: Run Deploy
         run: ./bin/deploy ${{ github.event.client_payload.environment }}

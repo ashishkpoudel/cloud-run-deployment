@@ -6,6 +6,8 @@ $environment = $argv[1];
 $projectDir = dirname(__DIR__);
 $configFile = "${projectDir}/infra/gcp/config.json";
 
+echo "hello there";
+
 if (!file_exists($configFile)) {
     throw new Exception("config file does not exist in path: ${configPath}");
 }

@@ -1,4 +1,17 @@
-curl -X POST  https://github.com/ashishkpoudel/cloud-run-deployment/dispatches \
+#!/usr/bin/env bash
+
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+GITHUB_DEPLOY_TOKEN=$(grep GITHUB_DEPLOY_TOKEN "$SCRIPT_PATH/.env" | xargs)
+GITHUB_DEPLOY_TOKEN=${GITHUB_DEPLOY_TOKEN#*=}
+
+ENVIRONMENT=$1 # live, staging etc..
+BRANCH=$2
+
+curl \
+    -X POST  \
     -H 'Accept: application/vnd.github.everest-preview+json' \
     -H "Authorization: token $GITHUB_DEPLOY_TOKEN" \
-    --data '{"event_type": "deploy-service", "client_payload": {"environment": "'"$1"'", "ref": "'"$2"'"}}'
+    https://api.github.com/repos/ashishkpoudel/cloud-run-deployment/dispatches \
+    --data '{"event_type": "deploy-service", "client_payload": {"environment": "'"$ENVIRONMENT"'", "ref": "'"$BRANCH"'"}}' \
