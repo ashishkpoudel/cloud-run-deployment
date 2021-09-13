@@ -1,12 +1,12 @@
 provider "google" {
-  credentials = "../credentials/outside-playground-300111-e677a30796bd.json"
+  credentials = "../credentials/test-service-account.json"
   project = var.project
   region = var.region
   zone = var.zone
 }
 
 provider "google-beta" {
-  credentials = "../credentials/outside-playground-300111-e677a30796bd.json"
+  credentials = "../credentials/test-service-account.json"
   project = var.project
   region = var.region
   zone = var.zone
@@ -14,9 +14,9 @@ provider "google-beta" {
 
 terraform {
   backend "gcs" {
-    bucket = "cloud-run-deployment"
+    bucket = "cloud-run-deployment-next"
     prefix = "api"
-    credentials = "../credentials/outside-playground-300111-e677a30796bd.json"
+    credentials = "../credentials/test-service-account.json"
   }
 }
 

@@ -2,6 +2,7 @@ const { spawnSync, execSync } = require('child_process');
 const { dirname } = require('path');
 const { existsSync, readFileSync } = require('fs');
 
+const service = 'api';
 const environment = process.argv[2];
 const projectDir = dirname(__dirname);
 const configFile = `${projectDir}/infra/gcp/config.json`;
@@ -42,7 +43,7 @@ const terraformApply = (dir, image) => {
 
 const config = JSON.parse(readFileSync(configFile))[environment];
 const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
-const image = `us-docker.pkg.dev/outside-playground-300111/cloudrun-deployment/api:${commitHash}`;
+const image = `us-docker.pkg.dev/${config['project']}/${config['artifactRepository']}/${service}:${commitHash}`;
 const serviceAccountKeyFile = `${projectDir}/infra/gcp/credentials/${config['serviceAccountKey']}`;
 const terraformDir = `${projectDir}/infra/gcp/terraform`;
 

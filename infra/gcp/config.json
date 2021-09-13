@@ -1,8 +1,8 @@
 {
-    "live": {
-        "project": "outside-playground-300111",
-        "artifactRepository": "cloudrun-deployment",
-        "serviceAccount": "akp-cloud-run-deployment@outside-playground-300111.iam.gserviceaccount.com",
-        "serviceAccountKey": "outside-playground-300111-e677a30796bd.json"
+    "test": {
+        "project": "playground-325915",
+        "artifactRepository": "cloud-run-deployment",
+        "serviceAccount": "cloud-run-deployment@playground-325915.iam.gserviceaccount.com",
+        "serviceAccountKey": "test-service-account.json"
     }
 }

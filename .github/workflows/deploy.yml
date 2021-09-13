@@ -20,6 +20,10 @@ jobs:
         with:
           node-version: 14.3.0
 
+      - name: Decrypt Credentials
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" --output "./infra/gcp/credentials/${{ github.event.client_payload.environment }}-service-account.json" --decrypt "./infra/gcp/credentials/${{ github.event.client_payload.environment }}-service-account.json.gpg"
+
       - name: Install Terraform
         run: |
           sudo apt-get install unzip
